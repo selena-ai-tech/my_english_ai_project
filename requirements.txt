@@ -1,2 +1,5 @@
 flask
-
+slack-bolt
+python-dotenv
+transformers
+requests
