@@ -1,39 +1,38 @@
 import os
-from flask import Flask, request
 from slack_bolt import App
-from slack_bolt.adapter.flask import SlackRequestHandler
-from transformers import pipeline
-from dotenv import load_dotenv
 
-# .env 파일 로드
-load_dotenv()
+# Slack Bot Token과 Signing Secret 가져오기
+slack_bot_token = os.getenv("SLACK_BOT_TOKEN")  # GitHub Secrets에서 가져옴
+slack_signing_secret = os.getenv("SLACK_SIGNING_SECRET")  # (Secrets에 추가한 경우)
 
-# Slack Bot 초기화
-slack_app = App(token=os.getenv("SLACK_BOT_TOKEN"))
-handler = SlackRequestHandler(slack_app)
+# Hugging Face API Key 가져오기
+huggingface_api_key = os.getenv("HUGGINGFACE_API_KEY")  # GitHub Secrets에서 가져옴
 
-# Hugging Face 모델 로드
-hf_pipeline = pipeline("text2text-generation", model="t5-small")
+# Slack App 초기화
+slack_app = App(token=slack_bot_token, signing_secret=slack_signing_secret)
 
-# Flask 애플리케이션 초기화
-app = Flask(__name__)
+# Slack App 기능 추가 (예제)
+@slack_app.event("app_mention")
+def handle_app_mention(event, say):
+    say("Hello! I'm your Slack bot.")
 
-# Slack 이벤트 처리
-@slack_app.event("message")
-def handle_message(event, say):
-    user_message = event['text']
-    
-    # Hugging Face API를 사용하여 영어 교정 요청
-    response = hf_pipeline(user_message)
-    
-    # 교정된 메시지 Slack에 전송
-    corrected_message = response[0]['generated_text']
-    say(text=corrected_message)
+# Hugging Face API 사용 예제
+def use_huggingface_api(text):
+    import requests
 
-# Slack 요청을 Flask와 연결
-@app.route("/slack/events", methods=["POST"])
-def slack_events():
-    return handler.handle(request)
+    url = "https://api-inference.huggingface.co/models/distilgpt2"
+    headers = {"Authorization": f"Bearer {huggingface_api_key}"}
+    response = requests.post(url, headers=headers, json={"inputs": text})
+    return response.json()
 
+# Flask 서버 실행 (필요한 경우)
 if __name__ == "__main__":
-    app.run(debug=True)
+    from flask import Flask
+
+    app = Flask(__name__)
+
+    @app.route("/")
+    def home():
+        return "Slack Bot is running!"
+
+    app.run(host="0.0.0.0", port=5000)
