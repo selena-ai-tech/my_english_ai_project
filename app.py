@@ -1,10 +1,14 @@
 import os
 from slack_bolt import App
 
-# Slack Bot Token과 Signing Secret 가져오기
-slack_bot_token = os.getenv("SLACK_BOT_TOKEN")  # GitHub Secrets에서 가져옴
-slack_signing_secret = os.getenv("SLACK_SIGNING_SECRET")  # (Secrets에 추가한 경우)
+slack_token = os.getenv("SLACK_BOT_TOKEN")  # 환경 변수에서 토큰 가져오기
 
+# SLACK_BOT_TOKEN이 없으면 오류를 발생시킬 수 있으므로 추가적인 오류 처리도 가능
+if not slack_token:
+    raise ValueError("SLACK_BOT_TOKEN is not set. Please set the environment variable.")
+
+# Slack 앱 초기화
+slack_app = App(token=slack_token)
 # Hugging Face API Key 가져오기
 huggingface_api_key = os.getenv("HUGGINGFACE_API_KEY")  # GitHub Secrets에서 가져옴
 
