@@ -3,6 +3,7 @@ from slack_bolt import App
 
 # Slack Bot Token과 Signing Secret 가져오기
 slack_bot_token = os.getenv("SLACK_BOT_TOKEN")  # GitHub Secrets에서 가져옴
+slack_app = App(token=slack_token) 
 slack_signing_secret = os.getenv("SLACK_SIGNING_SECRET")  # (Secrets에 추가한 경우)
 
 # Hugging Face API Key 가져오기
