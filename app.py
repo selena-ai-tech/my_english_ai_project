@@ -1,15 +1,15 @@
 import os
 from slack_bolt import App
 
-slack_token = os.getenv("SLACK_BOT_TOKEN")  # 환경 변수에서 토큰 가져오기
+# 환경 변수에서 SLACK_BOT_TOKEN 가져오기
+slack_token = os.getenv("SLACK_BOT_TOKEN")
 
-# SLACK_BOT_TOKEN이 없으면 오류를 발생시킬 수 있으므로 추가적인 오류 처리도 가능
-if not slack_token:
-    raise ValueError("SLACK_BOT_TOKEN is not set. Please set the environment variable.")
+# Slack App 초기화
+if slack_token:
+    slack_app = App(token=slack_token)
+else:
+    raise ValueError("SLACK_BOT_TOKEN 환경 변수가 정의되지 않았습니다.")
 
-# Slack 앱 초기화
-slack_app = App(token=slack_token)
-# Hugging Face API Key 가져오기
 huggingface_api_key = os.getenv("HUGGINGFACE_API_KEY")  # GitHub Secrets에서 가져옴
 
 # Slack App 초기화
