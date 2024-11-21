@@ -1,42 +1,36 @@
 import os
 from slack_bolt import App
+from flask import Flask, request
+import requests
 
-# 환경 변수에서 SLACK_BOT_TOKEN 가져오기
-slack_token = os.getenv("SLACK_BOT_TOKEN")
+# 환경 변수 가져오기
+slack_bot_token = os.environ.get("SLACK_BOT_TOKEN")
+slack_signing_secret = os.environ.get("SLACK_SIGNING_SECRET")
+huggingface_api_key = os.environ.get("HUGGINGFACE_API_KEY")
 
-# Slack App 초기화
-if slack_token:
-    slack_app = App(token=slack_token)
-else:
-    raise ValueError("SLACK_BOT_TOKEN 환경 변수가 정의되지 않았습니다.")
+# Slack Bolt 앱 초기화
+slack_app = App(
+    token=slack_bot_token,
+    signing_secret=slack_signing_secret,
+)
 
-huggingface_api_key = os.getenv("HUGGINGFACE_API_KEY")  # GitHub Secrets에서 가져옴
+# Flask 앱 초기화
+flask_app = Flask(__name__)
 
-# Slack App 초기화
-slack_app = App(token=slack_bot_token, signing_secret=slack_signing_secret)
-
-# Slack App 기능 추가 (예제)
 @slack_app.event("app_mention")
-def handle_app_mention(event, say):
-    say("Hello! I'm your Slack bot.")
+def handle_mention(event, say):
+    say("안녕하세요! 무엇을 도와드릴까요?")
 
-# Hugging Face API 사용 예제
-def use_huggingface_api(text):
-    import requests
-
-    url = "https://api-inference.huggingface.co/models/distilgpt2"
+@flask_app.route("/huggingface", methods=["POST"])
+def huggingface_request():
+    data = request.json
     headers = {"Authorization": f"Bearer {huggingface_api_key}"}
-    response = requests.post(url, headers=headers, json={"inputs": text})
+    response = requests.post("https://api-inference.huggingface.co/models/gpt2", headers=headers, json=data)
     return response.json()
 
-# Flask 서버 실행 (필요한 경우)
+@flask_app.route("/slack/events", methods=["POST"])
+def slack_events():
+    return slack_app.dispatch(request)
+
 if __name__ == "__main__":
-    from flask import Flask
-
-    app = Flask(__name__)
-
-    @app.route("/")
-    def home():
-        return "Slack Bot is running!"
-
-    app.run(host="0.0.0.0", port=5000)
+    flask_app.run(port=3000)
